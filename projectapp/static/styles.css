@@ -1,0 +1,184 @@
+/* *{
+    border: 1px solid #000;
+} */
+
+.e__navbar{
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 1rem 6rem;
+    width: 100%;
+    /* background-color: #f2f2f2;   */
+}
+
+.e__navbar-links{
+    flex: 1;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.e__navbar-links_logo{
+    margin-right: 2rem;
+    display: flex;
+}
+
+.e__navbar-links_logo h2{
+    font-size: 25px;
+    color: #4831D4;
+}
+
+
+
+.e__navbar-links_container ul{
+    display: flex;
+    flex-direction: row;
+}
+
+
+.e__navbar-links_container li{
+    color: #4831D4;
+    /* font-family: ; */
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 25px;
+    text-transform: capitalize;
+    margin: 0 1rem;
+    cursor: pointer;
+    list-style-type: none;
+}
+
+.e__navbar-links_container li a{
+    text-decoration: none;
+    color: #4831D4;
+}
+
+.e__navbar-links_container li:hover{
+    color: #f5c10b;
+}
+
+.mycontainer{
+    display: flex;
+    padding: 3rem 2rem;
+    overflow: hidden;
+    justify-content: space-between;
+}
+
+.e__navbar-input{
+    flex: 1;
+    border-radius: 20px;
+    padding: 2rem;
+    background: #4831D4;
+    margin-right: 1rem;
+    color: #fff;
+}
+
+/* .e__navbar-input{
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+} */
+
+.search-text{
+    padding: 0;
+    color: #fff;
+    font-size: 16px;
+    border: none;
+    outline: none;
+    width: 85%;
+    line-height: 30px;
+    margin-top: -5px;
+    background: none;
+}
+::placeholder{
+    color: #fff;
+    opacity: 1;
+}
+
+.news-body{
+    flex: 4;
+    display: flex;
+}
+
+
+.news-content{
+    padding: 1rem 2rem;
+}
+
+.news-content a{
+    text-decoration: none;
+    color: #4831D4;
+}
+
+.news-content h3{
+    font-size: 25px;
+}
+
+.news-content p{
+    font-size: 19px;
+}
+
+.children{
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.children, .children a{
+    color: #000;
+}
+
+.children p{
+    font-size: 13px;
+    margin: 0 10px;
+}
+
+.vert-line{
+    border-left: 2px solid #000;
+    height: 20px;
+}
+
+.makepost{
+    padding: 2rem;
+}
+
+.makepost form{
+    width: 70%;
+}
+
+.child{
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.comment-form{
+    width: 50%;
+}
+
+.comments-box{
+    margin-top: 4rem;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+.footer{
+    background-color: #4831D4;
+    color: #000;
+    padding: 0 6rem;
+    position: absolute;
+    bottom: 0;
+    text-align: center;
+    width: 100%;
+    overflow: hidden;
+}

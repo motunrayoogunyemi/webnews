@@ -1,0 +1,31 @@
+{% extends 'layout.html' %}
+
+
+{% block content%}
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <div class="comment-form">
+                <h4>Post a comment</h4>
+                <form action="">
+                    <div><textarea name="addcomment" id="" class="form-control"></textarea></div>
+                    <button class="btn btn-danger mt-3">Add Comment</button>
+                </form>
+            </div>
+            <div class="comments-box">
+                <p>comment text is mostly trolling</p>
+                <div class="children">
+                    <p>comment time</p>
+                    <div class="vert-line"></div>
+                    <p>comment author</p>
+                    <div class="vert-line"></div>
+                    <p><a href="/user/replycomments">Reply</a></p>
+                </div>
+                <div>
+                    <p>Comments children. Still haven't decided how this is going to be displayed. inspiration oo</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content%}

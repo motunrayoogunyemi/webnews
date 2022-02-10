@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="{{url_for('static',filename='css/bootstrap.css')}}" rel="stylesheet" type="text/css">
+    <link href="{{url_for('static',filename='styles.css')}}" rel="stylesheet">
+    <title>layout</title>
+</head>
+<body>
+    <div class='e__navbar'>
+        <div class='e__navbar-links'>
+            <div class='e__navbar-links_logo'>
+                <h2>Web-News</h2>
+            </div>
+            <div class='e__navbar-links_container'>
+                <ul class="mt-2">
+                    <li><a href="{{url_for('home')}}">Home</a></li>
+                    <li><a href="comments">comments</a></li>
+                    <li><a href="{{url_for('submitpost')}}">Submit a Story or Job</a></li>
+                </ul>
+            </div>
+            <!-- <div class="e__navbar-input">
+                <input id="search" type="text" placeholder="Search.." name="search" class="search-text">
+            </div> -->
+        </div>
+    </div>
+
+
+    {% block content %}
+   
+    {% endblock content %}
+
+
+    <footer>
+        <div class="footer">
+            <p>Designed by me and copyright</p>
+        </div>
+    </footer>
+</body>
+</html>
