@@ -4,43 +4,46 @@ from projectapp import db
 
 class Job(db.Model):
     id = db.Column(db.Integer(), primary_key=True,autoincrement=True)
-    job_id = db.Column(db.String(30), nullable=False)
-    deleted = db.Column(db.Boolean, default=False, nullable=False)
+    job_id = db.Column(db.String(30), nullable=True)
+    deleted = db.Column(db.Boolean, default=False, nullable=True)
     post_type = db.Column(db.String(30),nullable=False)
     by = db.Column(db.String(100),nullable=True)
     date = db.Column(db.DateTime(), default=datetime.datetime.utcnow)
-    dead = db.Column(db.Boolean, default=False, nullable=False)
+    dead = db.Column(db.Boolean, default=False, nullable=True)
     text = db.Column(db.String(5000),nullable=True)
-    url = db.Column(db.String(150),nullable=True)
+    url = db.Column(db.String(5000),nullable=True)
     title = db.Column(db.String(150),nullable=True)
     distinguish = db.Column(db.Boolean, default=False, nullable=False)
+    num_comments = db.Column(db.Integer(), nullable=True)
 
 class Story(db.Model):
     id = db.Column(db.Integer(), primary_key=True,autoincrement=True)
-    story_id = db.Column(db.String(30), nullable=False)
-    deleted = db.Column(db.Boolean, default=False, nullable=False)
+    story_id = db.Column(db.String(30), nullable=True)
+    deleted = db.Column(db.Boolean, default=False, nullable=True)
     post_type = db.Column(db.String(30),nullable=False)
     by = db.Column(db.String(100),nullable=True)
     date = db.Column(db.DateTime(), default=datetime.datetime.utcnow)
-    dead = db.Column(db.Boolean, default=False, nullable=False)
+    dead = db.Column(db.Boolean, default=False, nullable=True)
     descendants = db.Column(db.Integer(), nullable=True)
     score = db.Column(db.Integer(), nullable=True)
-    url = db.Column(db.String(150),nullable=True)
+    url = db.Column(db.String(5000),nullable=True)
     title = db.Column(db.String(150),nullable=True)
     distinguish = db.Column(db.Boolean, default=False, nullable=False)
+    num_comments = db.Column(db.Integer(), nullable=True)
 
 class Comment(db.Model):
     id = db.Column(db.Integer(), primary_key=True,autoincrement=True)
-    comment_id = db.Column(db.String(30), nullable=False)
-    deleted = db.Column(db.Boolean, default=False, nullable=False)
+    comment_id = db.Column(db.String(30), nullable=True)
+    deleted = db.Column(db.Boolean, default=False, nullable=True)
     post_type = db.Column(db.String(30),nullable=False)
     by = db.Column(db.String(100),nullable=True)
     date = db.Column(db.DateTime(), default=datetime.datetime.utcnow)
-    dead = db.Column(db.Boolean, default=False, nullable=False)
+    dead = db.Column(db.Boolean, default=False, nullable=True)
     parent_id = db.Column(db.Integer(), nullable=True)
     text = db.Column(db.String(5000),nullable=True)
     distinguish = db.Column(db.Boolean, default=False, nullable=False)
     comment_index = db.Column(db.Integer(), nullable=False)
+    num_comments = db.Column(db.Integer(), nullable=True)
 
 class Poll(db.Model):
     id = db.Column(db.Integer(), primary_key=True,autoincrement=True)
@@ -55,6 +58,7 @@ class Poll(db.Model):
     text = db.Column(db.String(5000),nullable=True)
     title = db.Column(db.String(150),nullable=True)
     distinguish = db.Column(db.Boolean, default=False, nullable=False)
+    num_comments = db.Column(db.Integer(), nullable=True)
 
 class Polloption(db.Model):
     id = db.Column(db.Integer(), primary_key=True,autoincrement=True)
@@ -68,6 +72,7 @@ class Polloption(db.Model):
     score = db.Column(db.Integer(), nullable=True)
     distinguish = db.Column(db.Boolean, default=False, nullable=False)
     poll_position = db.Column(db.Integer(), nullable=False)
+    num_comments = db.Column(db.Integer(), nullable=True)
 
 class Order(db.Model):
     id = db.Column(db.Integer(), primary_key=True,autoincrement=True)

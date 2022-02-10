@@ -1,10 +1,12 @@
 import json
+import math
 from pydoc import text
 from re import S
 from turtle import title
 from flask import jsonify, render_template,request, session
 from flask_restx import Resource
 from flask_restx import fields
+from sqlalchemy import or_
 
 from projectapp import api
 from projectapp.mymodels import Job, Comment, Order, Poll, Polloption, Story, db
@@ -210,7 +212,7 @@ from projectapp.mymodels import Job, Comment, Order, Poll, Polloption, Story, db
 #         id = params["id"]
 #         body = request.get_json()
 #         #item = getstuff(id)
-#         # if item is distinguished, exit
+#         # if item is distinguish, exit
 #         pass
 
 #     def delete(self):
@@ -218,7 +220,7 @@ from projectapp.mymodels import Job, Comment, Order, Poll, Polloption, Story, db
 #         id = params["id"]
 #         body = request.get_json()
 #         #item = getstuff(id)
-#         # if item is distinguished, exit
+#         # if item is distinguish, exit
 #         pass
 
 
@@ -230,6 +232,14 @@ parent_id, type
 id, everything
 '''
 @api.route('/resources/')
+@api.doc(get={'params':{
+    'id':'',
+    'type':'',
+    'text':'',
+    'parent_id':'',
+    'page':'',
+    'per_page':'',
+}})
 class Getitems(Resource):
     def get(self):
             # if ID is specified in the query params, return a single item with that matches the ID
@@ -239,27 +249,29 @@ class Getitems(Resource):
             type = request.args.get('type', default = None)
             text = request.args.get('text', default = None)
             parent_id = request.args.get('parent_id', default = None)
+            page = request.args.get('page', default=1, type=int)
+            per_page = request.args.get('per_page', default=20, type=int)
             if id:
                 if type:
                     if type == 'story':
                         story = db.session.query(Story).get(id)
-                        return jsonify({'title':story.title, 'url':story.url, 'author':story.by, 'date':story.date, 'type':story.post_type, 'id':story.id, 'score':story.score})
+                        return jsonify({'num_comments':story.num_comments, 'title':story.title, 'url':story.url, 'author':story.by, 'date':story.date, 'type':story.post_type, 'id':story.id, 'score':story.score})
 
                     elif type == 'job':
                         job = db.session.query(Job).get(id)
-                        return jsonify({'title':job.title, 'url':job.url, 'author':job.by, 'date':job.date, 'type':job.post_type, 'id':job.id, 'text':job.text})
+                        return jsonify({'num_comments':job.num_comments, 'title':job.title, 'url':job.url, 'author':job.by, 'date':job.date, 'type':job.post_type, 'id':job.id, 'text':job.text})
 
                     elif type == 'poll':
                         poll = db.session.query(Poll).get(id)
-                        return jsonify({'title':poll.title, 'url':poll.url, 'author':poll.by, 'date':poll.date, 'type':poll.post_type, 'id':poll.id, 'score':poll.score, 'text':poll.text})
+                        return jsonify({'num_comments':poll.num_comments, 'title':poll.title, 'author':poll.by, 'date':poll.date, 'type':poll.post_type, 'id':poll.id, 'score':poll.score, 'text':poll.text})
 
                     elif type == 'polloption':
                         polloption = db.session.query(Polloption).get(id)
-                        return jsonify({'author':polloption.by, 'date':polloption.date, 'type':polloption.post_type, 'id':polloption.id, 'score':polloption.score})
+                        return jsonify({'num_comments':polloption.num_comments, 'author':polloption.by, 'date':polloption.date, 'type':polloption.post_type, 'id':polloption.id, 'score':polloption.score})
 
                     elif type == 'comment':
                         comment = db.session.query(Comment).get(id)
-                        return jsonify({'text':comment.text, 'parent_item_id':comment.parent_id, 'author':comment.by, 'date':comment.date, 'type':comment.post_type, 'id':comment.id})
+                        return jsonify({'num_comments':comment.num_comments,'text':comment.text, 'parent_item_id':comment.parent_id, 'author':comment.by, 'date':comment.date, 'type':comment.post_type, 'id':comment.id})
 
                     else:
                         return "Type not found", 400
@@ -272,40 +284,40 @@ class Getitems(Resource):
                     story = db.session.query(Story).get(parent_id)
                     comments = db.session.query(Comment).filter(Comment.parent_id == story.story_id).order_by(Comment.comment_index).all()
                     for c in comments:
-                        entry = {'text':c.text, 'parent':parent_id, 'date':c.date, 'author':c.by}
-                        returnval[c.comment_index] = entry
+                        entry = {'text':c.text, 'parent':parent_id, 'date':c.date, 'author':c.by, 'num_comments':c.num_comments}
+                        returnval.insert(c.comment_index, entry)
                     return jsonify(returnval)
 
                 elif type == 'job':
                     job = db.session.query(Job).get(parent_id)
                     comments = db.session.query(Comment).filter(Comment.parent_id == job.job_id).order_by(Comment.comment_index).all()
                     for c in comments:
-                        entry = {'text':c.text, 'parent':parent_id, 'date':c.date, 'author':c.by}
-                        returnval[c.comment_index] = entry
+                        entry = {'text':c.text, 'parent':parent_id, 'date':c.date, 'author':c.by, 'num_comments':c.num_comments}
+                        returnval.insert(c.comment_index, entry)
                     return jsonify(returnval)
 
                 elif type == 'poll':
                     poll = db.session.query(Poll).get(parent_id)
                     comments = db.session.query(Comment).filter(Comment.parent_id == poll.poll_id).order_by(Comment.comment_index).all()
                     for c in comments:
-                        entry = {'text':c.text, 'parent':parent_id, 'date':c.date, 'author':c.by}
-                        returnval[c.comment_index] = entry
+                        entry = {'text':c.text, 'parent':parent_id, 'date':c.date, 'author':c.by, 'num_comments':c.num_comments}
+                        returnval.insert(c.comment_index, entry)
                     return jsonify(returnval)
 
                 elif type == 'polloption':
                     polloption = db.session.query(Polloption).get(parent_id)
                     comments = db.session.query(Comment).filter(Comment.parent_id == polloption.polloption_id).order_by(Comment.comment_index).all()
                     for c in comments:
-                        entry = {'text':c.text, 'parent':parent_id, 'date':c.date, 'author':c.by}
-                        returnval[c.comment_index] = entry
+                        entry = {'text':c.text, 'parent':parent_id, 'date':c.date, 'author':c.by, 'num_comments':c.num_comments}
+                        returnval.insert(c.comment_index, entry)
                     return jsonify(returnval)
 
                 elif type == 'comment':
                     comment = db.session.query(Comment).get(parent_id)
                     comments = db.session.query(Comment).filter(Comment.parent_id == comment.comment_id).order_by(Comment.comment_index).all()
                     for c in comments:
-                        entry = {'text':c.text, 'parent':parent_id, 'date':c.date, 'author':c.by}
-                        returnval[c.comment_index] = entry
+                        entry = {'text':c.text, 'parent':parent_id, 'date':c.date, 'author':c.by, 'num_comments':c.num_comments}
+                        returnval.insert(c.comment_index, entry)
                     return jsonify(returnval)
 
                 else:
@@ -314,116 +326,127 @@ class Getitems(Resource):
             elif type and text:
                 returnval = []
                 if type == 'story':
-                    story = db.session.query(Story).filter(Story.title.ilike(f'%{text}%') or Story.url.ilike(f'%{text}%')).all()
+                    story_pages = db.session.query(Story).filter(or_(Story.title.ilike(f'%{text}%'), Story.url.ilike(f'%{text}%'))).order_by(Story.date.desc()).paginate(page=page, per_page=per_page,error_out=False)
+                    story = story_pages.items
                     for i in story:
-                        entry = {'title':i.title, 'url':i.url, 'author':i.by, 'date':i.date, 'type':i.post_type, 'id':i.id}
+                        entry = {'num_comments':i.num_comments, 'title':i.title, 'url':i.url, 'author':i.by, 'date':i.date, 'type':i.post_type, 'id':i.id}
                         returnval.append(entry)
-                    return jsonify(returnval)
+                    return jsonify({'data':returnval, 'total_pages':story_pages.pages})
 
                 elif type == 'job':
-                    job = db.session.query(Job).filter(Job.title.ilike(f'%{text}%') or Job.url.ilike(f'%{text}%') or Job.text.ilike(f'%{text}%')).all()
+                    job_pages = db.session.query(Job).filter(or_(Job.title.ilike(f'%{text}%'), Job.url.ilike(f'%{text}%'), Job.text.ilike(f'%{text}%'))).order_by(Job.date.desc()).paginate(page=page, per_page=per_page,error_out=False)
+                    job = job_pages.items
                     for i in job:
-                        entry = {'title':i.title, 'url':i.url, 'author':i.by, 'date':i.date, 'type':i.post_type, 'id':i.id}
+                        entry = {'num_comments':i.num_comments, 'title':i.title, 'url':i.url, 'author':i.by, 'date':i.date, 'type':i.post_type, 'id':i.id}
                         returnval.append(entry)
-                    return jsonify(returnval)
+                    return jsonify({'data':returnval, 'total_pages':job_pages.pages})
 
                 elif type == 'poll':
-                    poll = db.session.query(Poll).filter(Poll.title.ilike(f'%{text}%') or Poll.text.ilike(f'%{text}%')).all()
+                    poll_pages = db.session.query(Poll).filter(or_(Poll.title.ilike(f'%{text}%'), Poll.text.ilike(f'%{text}%'))).order_by(Poll.date.desc()).paginate(page=page, per_page=per_page,error_out=False)
+                    poll = poll_pages.items
                     for i in poll:
-                        entry = {'title':i.title, 'url':i.url, 'author':i.by, 'date':i.date, 'type':i.post_type, 'id':i.id}
+                        entry = {'num_comments':i.num_comments, 'title':i.title, 'url':i.url, 'author':i.by, 'date':i.date, 'type':i.post_type, 'id':i.id}
                         returnval.append(entry)
-                    return jsonify(returnval)
+                    return jsonify({'data':returnval, 'total_pages':poll_pages.pages})
 
                 else:
-                    return jsonify(returnval)
+                    return jsonify({'data':returnval, 'total_pages':1})
                 
             elif type:
                 returnval = []
                 if type == 'story':
-                    story = db.session.query(Story).all()
+                    story_pages = db.session.query(Story).order_by(Story.date.desc()).paginate(page=page, per_page=per_page,error_out=False)
+                    story = story_pages.items
                     for i in story:
-                        entry = {'title':i.title, 'url':i.url, 'author':i.by, 'date':i.date, 'type':i.post_type, 'id':i.id}
+                        entry = {'num_comments':i.num_comments, 'title':i.title, 'url':i.url, 'author':i.by, 'date':i.date, 'type':i.post_type, 'id':i.id}
                         returnval.append(entry)
-                    return jsonify(returnval)
+                    return jsonify({'data':returnval, 'total_pages':story_pages.pages})
 
                 elif type == 'job':
-                    job = db.session.query(Job).all()
+                    job_pages = db.session.query(Job).order_by(Job.date.desc()).paginate(page=page, per_page=per_page,error_out=False)
+                    job = job_pages.items
                     for i in job:
-                        entry = {'title':i.title, 'url':i.url, 'author':i.by, 'date':i.date, 'type':i.post_type, 'id':i.id}
+                        entry = {'num_comments':i.num_comments, 'title':i.title, 'url':i.url, 'author':i.by, 'date':i.date, 'type':i.post_type, 'id':i.id}
                         returnval.append(entry)
-                    return jsonify(returnval)
+                    return jsonify({'data':returnval, 'total_pages':job_pages.pages})
 
                 elif type == 'poll':
-                    poll = db.session.query(Poll).all()
+                    poll_pages = db.session.query(Poll).order_by(Poll.date.desc()).paginate(page=page, per_page=per_page,error_out=False)
+                    poll = poll_pages.items
                     for i in poll:
-                        entry = {'title':i.title, 'url':i.url, 'author':i.by, 'date':i.date, 'type':i.post_type, 'id':i.id}
+                        entry = {'num_comments':i.num_comments, 'title':i.title, 'url':i.url, 'author':i.by, 'date':i.date, 'type':i.post_type, 'id':i.id}
                         returnval.append(entry)
-                    return jsonify(returnval)
+                    return jsonify({'data':returnval, 'total_pages':poll_pages.pages})
 
                 else:
-                    return jsonify(returnval)
+                    return jsonify({'data':returnval, 'total_pages':1})
                 
             elif text:
                 returnval = []
-                story = db.session.query(Story).filter(Story.title.ilike(f'%{text}%') or Story.url.ilike(f'%{text}%')).all()
+                story = db.session.query(Story).filter(or_(Story.title.ilike(f'%{text}%'), Story.url.ilike(f'%{text}%'))).all()
                 for i in story:
-                    entry = {'title':i.title, 'url':i.url, 'author':i.by, 'date':i.date, 'type':i.post_type, 'id':i.id}
+                    entry = {'num_comments':i.num_comments, 'title':i.title, 'url':i.url, 'author':i.by, 'date':i.date, 'type':i.post_type, 'id':i.id}
                     returnval.append(entry) 
 
-                job = db.session.query(Job).filter(Job.title.ilike(f'%{text}%') or Job.url.ilike(f'%{text}%') or Job.text.ilike(f'%{text}%')).all()
+                job = db.session.query(Job).filter(or_(Job.title.ilike(f'%{text}%'), Job.url.ilike(f'%{text}%'), Job.text.ilike(f'%{text}%'))).all()
                 for i in job:
-                    entry = {'title':i.title, 'url':i.url, 'author':i.by, 'date':i.date, 'type':i.post_type, 'id':i.id}
+                    entry = {'num_comments':i.num_comments, 'title':i.title, 'url':i.url, 'author':i.by, 'date':i.date, 'type':i.post_type, 'id':i.id}
                     returnval.append(entry) 
 
-                poll = db.session.query(Poll).filter(Poll.title.ilike(f'%{text}%') or Poll.text.ilike(f'%{text}%')).all()
+                poll = db.session.query(Poll).filter(or_(Poll.title.ilike(f'%{text}%'), Poll.text.ilike(f'%{text}%'))).all()
                 for i in poll:
-                    entry = {'title':i.title, 'url':i.url, 'author':i.by, 'date':i.date, 'type':i.post_type, 'id':i.id}
+                    entry = {'num_comments':i.num_comments, 'title':i.title, 'url':i.url, 'author':i.by, 'date':i.date, 'type':i.post_type, 'id':i.id}
                     returnval.append(entry)   
                 
                 returnval.sort(key=lambda c:c['date'], reverse=True)
-
-                return jsonify(returnval)
+                total = math.ceil(len(returnval)/per_page)
+                start = (page - 1) * per_page
+                stop = start + per_page + 1
+                returnval = returnval[start:stop]
+            
+                return jsonify({'data':returnval,'total_pages':total})
 
             else:
-                orders = db.session.query(Order).order_by(Order.date.desc()).all()
+                orders_pages = db.session.query(Order).order_by(Order.date.desc()).paginate(page=page, per_page=per_page,error_out=False)
+                orders = orders_pages.items
                 returnval = []
                 for i in orders:
                     index = orders.index(i)
                     if i.item_type == 'story':
                         story = db.session.query(Story).filter(Story.story_id == i.item_id).first()
-                        returnval.insert(index, {'title':story.title, 'url':story.url, 'author':story.by, 'date':story.date, 'type':story.post_type, 'id':story.id})
+                        returnval.insert(index, {'num_comments':story.num_comments, 'title':story.title, 'url':story.url, 'author':story.by, 'date':story.date, 'type':story.post_type, 'id':story.id})
 
                     elif i.item_type == 'job':
                         job = db.session.query(Job).filter(Job.job_id == i.item_id).first()
-                        returnval.insert(index, {'title':job.title, 'url':job.url, 'author':job.by, 'date':job.date, 'type':job.post_type, 'id':job.id})
+                        returnval.insert(index, {'num_comments':job.num_comments, 'title':job.title, 'url':job.url, 'author':job.by, 'date':job.date, 'type':job.post_type, 'id':job.id})
 
                     elif i.item_type == 'poll':
                         poll = db.session.query(Poll).filter(Poll.poll_id == i.item_id).first()
-                        returnval.insert(index, {'title':poll.title, 'url':poll.url, 'author':poll.by, 'date':poll.date, 'type':poll.post_type, 'id':poll.id})
+                        returnval.insert(index, {'num_comments':poll.num_comments, 'title':poll.title, 'author':poll.by, 'date':poll.date, 'type':poll.post_type, 'id':poll.id})
                 
-                return jsonify(returnval)
+                return jsonify({'data':returnval, 'total_pages':orders_pages.pages})
 
 
     def post(self):
         data = request.get_json()
         check = data.get('type')
         if check == 'job': 
-            records = Job(post_type=check, by=data.get('author'), text=data.get('postText'), url=data.get('postUrl'), title=data.get('postTitle'))
+            records = Job(post_type=check, by=data.get('author'), text=data.get('text'), url=data.get('url'), title=data.get('title'))
             db.session.add(records)
             db.session.commit()
             res = {'status':'success','type':records.post_type,'author':records.by,'title':records.title,'url':records.url,'text':records.text}
         elif check == 'story':
-            records = Story(post_type=check, by=data.get('author'), url=data.get('postUrl'), title=data.get('postTitle'))
+            records = Story(post_type=check, by=data.get('author'), url=data.get('url'), title=data.get('title'))
             db.session.add(records)
             db.session.commit()
             res = {'status':'success','type':records.post_type,'author':records.by,'title':records.title,'url':records.url}
         elif check == 'comment':
-            records = Comment(post_type=check, by=data.get('author'), text=data.get('postText'), title=data.get('postTitle'))
+            records = Comment(post_type=check, by=data.get('author'), text=data.get('text'), title=data.get('title'))
             db.session.add(records)
             db.session.commit()
             res = {'status':'success','type':records.post_type,'author':records.by,'title':records.title,'text':records.text}
         elif check == 'poll':
-            records = Poll(post_type=check, by=data.get('author'), text=data.get('postText'), title=data.get('postTitle'))
+            records = Poll(post_type=check, by=data.get('author'), text=data.get('text'), title=data.get('title'))
             db.session.add(records)
             db.session.commit()
             res = {'status':'success','type':records.post_type,'author':records.by,'title':records.title,'text':records.text}
@@ -437,38 +460,38 @@ class Getitems(Resource):
         body = request.get_json()
         if data_type == 'job':
             jobs = db.session.query(Job).get(data_id)
-            if not jobs.distinguished:
+            if not jobs.distinguish:
                 jobs.by == body['author']
-                jobs.title = body['postTitle']
-                jobs.text = body['postText']
-                jobs.url = body['postUrl']
+                jobs.title = body['title']
+                jobs.text = body['text']
+                jobs.url = body['url']
                 db.session.commit()
                 return jsonify({'status':'success'})
-            return jsonify({'error': 'unauthorized to edit data'})
+            return jsonify({'error': 'You are unauthorized to edit this data'})
         elif data_type == 'story':
             stories = db.session.query(Story).get(data_id)
-            if not stories.distinguished:
+            if not stories.distinguish:
                 stories.by == body['author']
-                stories.title = body['postTitle']
-                stories.url = body['postUrl']
+                stories.title = body['title']
+                stories.url = body['url']
                 db.session.commit()
                 return jsonify({'status':'success'})
             return jsonify({'error': 'unauthorized to edit data'})
         elif data_type == 'comment':
-            comments = db.session.query(Comment).get(data_id)
-            if not comments.distinguished:
+            comments = db.session.query(Comment).get(data_id)  
+            if not comments.distinguish:
                 comments.by == body['author']
-                comments.title = body['postTitle']
-                comments.text = body['postText']
+                comments.title = body['title']
+                comments.text = body['text']
                 db.session.commit()
                 return jsonify({'status':'success'})
             return jsonify({'error': 'unauthorized to edit data'})
         elif data_type == 'poll':
             comments = db.session.query(Poll).get(data_id)
-            if not comments.distinguished:
+            if not comments.distinguish:
                 comments.by == body['author']
-                comments.title = body['postTitle']
-                comments.text = body['postText']
+                comments.title = body['title']
+                comments.text = body['text']
                 db.session.commit()
                 return jsonify({'status':'success'})
             return jsonify({'error': 'unauthorized to edit data'})
@@ -480,32 +503,32 @@ class Getitems(Resource):
         data_type = request.args.get('type')
         if data_type == 'job':
             jobs = db.session.query(Job).get(data_id)
-            if not jobs.distinguished:
+            if not jobs.distinguish:
                 db.session.delete(jobs)
                 db.session.commit()
                 return jsonify({'status':'Deleted successfully'})
-            return jsonify({'error':'unauthorized to edit data'})
+            return jsonify({'error':'unauthorized to delete data'}) 
         elif data_type == 'story':
             stories = db.session.query(Story).get(data_id)
-            if not stories.distinguished:
+            if not stories.distinguish:
                 db.session.delete(stories)
                 db.session.commit()
                 return jsonify({'status':'Deleted successfully'})
-            return jsonify({'error':'unauthorized to edit data'})
+            return jsonify({'error':'unauthorized to delete data'})
         elif data_type == 'comment':
             comments = db.session.query(Comment).get(data_id)
-            if not comments.distinguished:
+            if not comments.distinguish:
                 db.session.delete(comments)
                 db.session.commit()
                 return jsonify({'status':'Deleted successfully'})
-            return jsonify({'error':'unauthorized to edit data'})
+            return jsonify({'error':'unauthorized to delete data'})
         elif data_type == 'poll':
             polls = db.session.query(Poll).get(data_id)
-            if not polls.distinguished:
+            if not polls.distinguish:
                 db.session.delete(polls)
                 db.session.commit()
                 return jsonify({'status':'Deleted successfully'})
-            return jsonify({'error':'unauthorized to edit data'})
+            return jsonify({'error':'unauthorized to delete data'})
         else:
             return jsonify({'supply type'})
 

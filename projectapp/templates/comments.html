@@ -2,9 +2,11 @@
 
 
 {% block content%}
+
 <div class="container">
     <div class="row">
         <div class="col">
+            <p class="text-center">{{res}}</p>
             <div class="comment-form">
                 <h4>Post a comment</h4>
                 <form action="">
@@ -12,19 +14,19 @@
                     <button class="btn btn-danger mt-3">Add Comment</button>
                 </form>
             </div>
+            {% for r in res %}
             <div class="comments-box">
-                <p>comment text is mostly trolling</p>
+                <p>{{r.text}}</p>
                 <div class="children">
-                    <p>comment time</p>
+                    <p>{{r.date}}</p>
                     <div class="vert-line"></div>
-                    <p>comment author</p>
+                    <p>{{r.author}}</p>
                     <div class="vert-line"></div>
+                    <p>{{r.parent}}</p>
                     <p><a href="/user/replycomments">Reply</a></p>
                 </div>
-                <div>
-                    <p>Comments children. Still haven't decided how this is going to be displayed. inspiration oo</p>
-                </div>
             </div>
+            {% endfor %}
         </div>
     </div>
 </div>

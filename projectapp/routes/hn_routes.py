@@ -1,8 +1,9 @@
 import requests
+from datetime import datetime as dt
 # from projectapp import create_app
 from projectapp.mymodels import Job, Comment, Poll, Polloption, Story, db, Order
 
-from projectapp import app, db
+from projectapp import db, scheduler
 
 # db.init_app(app=create_app())
 
@@ -38,13 +39,14 @@ def AssignIntoTables(i):
             deleted = the_item.get("deleted"),
             post_type = the_item.get("type"),
             by = the_item.get("by"),
-            date = the_item.get("time"),
+            date = dt.utcfromtimestamp(the_item.get("time")),
             dead = the_item.get("dead"),
             descendants = the_item.get("descendants"),
             score = the_item.get("score"),
             url = the_item.get("url"),
             title = the_item.get("title"),
-            distinguish = True
+            distinguish = True,
+            num_comments = len(the_item.get("kids")) if the_item.get("kids") is list else 0
             )
         db.session.add(records)
         
@@ -52,7 +54,7 @@ def AssignIntoTables(i):
         orderRecord = Order(
             item_id = str(i),
             item_type = the_item.get("type"),
-            date = the_item.get("time")
+            date = dt.utcfromtimestamp(the_item.get("time"))
             )
         db.session.add(orderRecord)
 
@@ -68,12 +70,13 @@ def AssignIntoTables(i):
             deleted = the_item.get("deleted"),
             post_type = the_item.get("type"),
             by = the_item.get("by"),
-            date = the_item.get("time"),
+            date = dt.utcfromtimestamp(the_item.get("time")),
             dead = the_item.get("dead"),
             text = the_item.get("text"),
             url = the_item.get("url"),
             title = the_item.get("title"),
-            distinguish = True
+            distinguish = True,
+            num_comments = len(the_item.get("kids")) if the_item.get("kids") is list else 0
         )
         db.session.add(records)
 
@@ -81,7 +84,7 @@ def AssignIntoTables(i):
         orderRecord = Order(
             item_id = str(i),
             item_type = the_item.get("type"),
-            date = the_item.get("time")
+            date = dt.utcfromtimestamp(the_item.get("time"))
             )
         db.session.add(orderRecord)
 
@@ -97,13 +100,14 @@ def AssignIntoTables(i):
             deleted = the_item.get("deleted"),
             post_type = the_item.get("type"),
             by =the_item.get("by"),
-            date = the_item.get("time"),
+            date = dt.utcfromtimestamp(the_item.get("time")),
             dead = the_item.get("dead"),
             descendants = the_item.get("descendants"),
             score = the_item.get("score"),
             text = the_item.get("text"),
             title = the_item.get("title"),
-            distinguish = True
+            distinguish = True,
+            num_comments = len(the_item.get("kids")) if the_item.get("kids") is list else 0
         )
 
         db.session.add(records)
@@ -112,7 +116,7 @@ def AssignIntoTables(i):
         orderRecord = Order(
             item_id = str(i),
             item_type = the_item.get("type"),
-            date = the_item.get("time")
+            date = dt.utcfromtimestamp(the_item.get("time"))
             )
         db.session.add(orderRecord)
 
@@ -131,12 +135,13 @@ def AssignIntoTables(i):
             deleted = the_item.get("deleted"),
             post_type = the_item.get("type"),
             by = the_item.get("by"),
-            date = the_item.get("time"),
+            date = dt.utcfromtimestamp(the_item.get("time")),
             dead = the_item.get("dead"),
             parents = the_item.get("parent"),
             score = the_item.get("score"),
             distinguish = True,
-            poll_position = parentItem["kids"].index(i)
+            poll_position = parentItem["kids"].index(i),
+            num_comments = len(the_item.get("kids")) if the_item.get("kids") is list else 0
         )
 
         db.session.add(polloptRecord)
@@ -154,12 +159,13 @@ def AssignIntoTables(i):
             deleted = the_item.get("deleted"),
             post_type = the_item.get("type"),
             by = the_item.get("by"),
-            date = the_item.get("time"),
+            date = dt.utcfromtimestamp(the_item.get("time")),
             dead = the_item.get("dead"),
             parent_id = the_item.get("parent"),
             text = the_item.get("text"),
             distinguish = True,
-            comment_index = parentItem["kids"].index(i)
+            comment_index = parentItem["kids"].index(i),
+            num_comments = len(the_item.get("kids")) if the_item.get("kids") is list else 0
         )
 
         db.session.add(commentRecord)
@@ -195,12 +201,13 @@ def ShareIntoTable(item_array, item_type, parent_id):
                     deleted = commentItem.get("deleted"),
                     post_type = commentItem.get("type"),
                     by = commentItem.get("by"),
-                    date = commentItem.get("time"),
+                    date = dt.utcfromtimestamp(commentItem.get("time")),
                     dead = commentItem.get("dead"),
                     parent_id = parent_id,
                     text = commentItem.get("text"),
                     distinguish = True,
-                    comment_index = item_array.index(i)
+                    comment_index = item_array.index(i),
+                    num_comments = len(commentItem.get("kids")) if commentItem.get("kids") is list else 0
                 )
 
                 db.session.add(commentRecord)
@@ -222,12 +229,13 @@ def ShareIntoTable(item_array, item_type, parent_id):
                     deleted = polloptItem.get("deleted"),
                     post_type = polloptItem.get("type"),
                     by = polloptItem.get("by"),
-                    date = polloptItem.get("time"),
+                    date = dt.utcfromtimestamp(polloptItem.get("time")),
                     dead = polloptItem.get("dead"),
                     parents = parent_id,
                     score = polloptItem.get("score"),
                     distinguish = True,
-                    poll_position = item_array.index(i)
+                    poll_position = item_array.index(i),
+                    num_comments = len(polloptItem.get("kids")) if polloptItem.get("kids") is list else 0
                 )
 
                 db.session.add(polloptRecord)
@@ -297,9 +305,15 @@ def GetUpdates():
     response = requests.get(url,params)
     return response.json()
 
-ProcessListOfItems(GetLatestHundredItems())
-ProcessListOfItems(GetJobStories())
-ProcessListOfItems(GetShowStories())
-ProcessListOfItems(GetAskStories())
-ProcessListOfItems(GetNewStories())
-ProcessListOfItems(GetTopStories())
+# interval
+@scheduler.task('interval', id='do_job_2', seconds=300)
+def PopulateDB():
+    with scheduler.app.app_context():
+        print('populating db...')
+        ProcessListOfItems(GetLatestHundredItems())
+        ProcessListOfItems(GetJobStories())
+        ProcessListOfItems(GetShowStories())
+        ProcessListOfItems(GetAskStories())
+        ProcessListOfItems(GetNewStories())
+        ProcessListOfItems(GetTopStories())
+        print('done populating db...')

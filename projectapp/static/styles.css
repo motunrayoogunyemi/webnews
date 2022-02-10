@@ -71,6 +71,7 @@
     background: #4831D4;
     margin-right: 1rem;
     color: #fff;
+    height: 400px;
 }
 
 /* .e__navbar-input{
@@ -97,7 +98,6 @@
 
 .news-body{
     flex: 4;
-    display: flex;
 }
 
 
@@ -119,9 +119,14 @@
 }
 
 .children{
-    display: flex;
+    display: inline-flex;
+    flex-direction: row;
     align-items: flex-start;
     justify-content: flex-start;
+}
+
+.loop{
+    display: flex;
 }
 
 .children, .children a{
@@ -131,6 +136,7 @@
 .children p{
     font-size: 13px;
     margin: 0 10px;
+    display: flex;
 }
 
 .vert-line{
@@ -176,8 +182,8 @@
     background-color: #4831D4;
     color: #000;
     padding: 0 6rem;
-    position: absolute;
-    bottom: 0;
+    position: relative;
+    bottom: -1;
     text-align: center;
     width: 100%;
     overflow: hidden;

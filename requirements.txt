@@ -1,6 +1,7 @@
 alembic==1.7.5
 aniso8601==9.0.1
 astroid==2.8.6
+APScheduler==3.8.1
 attrs==21.4.0
 blinker==1.4
 certifi==2021.10.8
@@ -19,11 +20,18 @@ Flask-Migrate==3.1.0
 flask-restx==0.5.1
 Flask-SQLAlchemy==2.5.1
 Flask-WTF==1.0.0
+Flask-APScheduler==1.12.3
 greenlet==1.1.2
 idna==3.2
 isort==5.10.1
 itsdangerous==2.0.1
 Jinja2==3.0.3
+jsonschema==4.4.0
+protobuf==3.19.4
+python-dateutil==2.8.2
+tzdata==2021.5
+tzlocal==4.1
+pytz-deprecation-shim==0.1.0.post0
 lazy-object-proxy==1.6.0
 Mako==1.1.6
 MarkupSafe==2.0.1
